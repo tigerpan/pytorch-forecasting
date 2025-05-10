@@ -24,6 +24,7 @@ def _get_data_by_filename(fname: str) -> Path:
         Path: path at which file lives
     """
     full_fname = DATA_PATH.joinpath(fname)
+    print(f"Downloading {fname} to {full_fname}...")
 
     # check if file exists - download if necessary
     if not full_fname.exists():

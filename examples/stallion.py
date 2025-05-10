@@ -5,7 +5,7 @@ import lightning.pytorch as pl
 from lightning.pytorch.callbacks import EarlyStopping, LearningRateMonitor
 from lightning.pytorch.loggers import TensorBoardLogger
 import numpy as np
-from pandas.core.common import SettingWithCopyWarning
+from pandas.errors import SettingWithCopyWarning  # 修改了导入路径
 
 from pytorch_forecasting import (
     GroupNormalizer,
@@ -19,7 +19,6 @@ from pytorch_forecasting.models.temporal_fusion_transformer.tuning import (
 )
 
 warnings.simplefilter("error", category=SettingWithCopyWarning)
-
 
 data = get_stallion_data()
 
@@ -63,7 +62,7 @@ training = TimeSeriesDataSet(
     target="volume",
     group_ids=["agency", "sku"],
     min_encoder_length=max_encoder_length
-    // 2,  # allow encoder lengths from 0 to max_prediction_length
+                       // 2,  # allow encoder lengths from 0 to max_prediction_length
     max_encoder_length=max_encoder_length,
     min_prediction_length=1,
     max_prediction_length=max_prediction_length,
@@ -92,7 +91,6 @@ training = TimeSeriesDataSet(
     add_encoder_length=True,
 )
 
-
 validation = TimeSeriesDataSet.from_dataset(
     training, data, predict=True, stop_randomization=True
 )
@@ -104,16 +102,15 @@ val_dataloader = validation.to_dataloader(
     train=False, batch_size=batch_size, num_workers=0
 )
 
-
 # save datasets
-training.save("t raining.pkl")
+training.save("training.pkl")
 validation.save("validation.pkl")
 
 early_stop_callback = EarlyStopping(
     monitor="val_loss", min_delta=1e-4, patience=10, verbose=False, mode="min"
 )
 lr_logger = LearningRateMonitor()
-logger = TensorBoardLogger(log_graph=True)
+logger = TensorBoardLogger(save_dir="logs", log_graph=True)  # 添加 save_dir 参数
 
 trainer = pl.Trainer(
     max_epochs=100,
@@ -127,7 +124,6 @@ trainer = pl.Trainer(
     # profiler=True,
     callbacks=[lr_logger, early_stop_callback],
 )
-
 
 tft = TemporalFusionTransformer.from_dataset(
     training,
@@ -187,7 +183,6 @@ study = optimize_hyperparameters(
 )
 with open("test_study.pkl", "wb") as fout:
     pickle.dump(study, fout)
-
 
 # profile speed
 # profile(
